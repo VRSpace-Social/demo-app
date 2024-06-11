@@ -1,5 +1,16 @@
 <script lang="ts">
-    import { onMount } from "svelte";
+
+    async function sha256(message: string) {
+        const msgBuffer = new TextEncoder().encode(message);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        return hashHex;
+    }
+
+    import { onMount, onDestroy } from "svelte";
+    import { showToast } from '$utils/toast';
+
     let isWSRunning: boolean;
     let webSocket: WebSocket; // Declare webSocket as a global variable
 
@@ -114,6 +125,7 @@
                 default: {
                     try {
                         console.log(JSON.parse(event.data.toString()));
+                        console.log(await sha256(JSON.parse(event.data.toString()).content));
                     } catch (e) {
                         console.error("Error while trying to parse message: " + e)
                         console.log(JSON.parse(event.data.toString()));
@@ -140,9 +152,6 @@
         }
     }
 
-
-    
-
     onMount(async () => {
         console.log("Welcome to VRChat WebSocket using VRSpace API!");
         const authCookieRequest = await fetch("http://localhost:3000/api/getAuthCookie", {
@@ -150,18 +159,24 @@
             headers: {
                 "Content-Type": "application/json",
             }
+        }).catch(e => {
+            console.error("Error while trying to get auth cookie: " + e);
+            return undefined;
         });
-        const authCookie = await authCookieRequest.text();
-        console.log(authCookie);
-        doRunWS(authCookie);
+        const authCookie = await authCookieRequest?.text();
+        if(authCookie) {
+            doRunWS(authCookie);
+        } else {
+            console.error("Auth cookie is not found");
+            showToast('Auth cookie is not found');
+
+        }
         
     });
 
-    onpagehide = () => {
-        if (webSocket) {
-            webSocket.close();
-        }
-    }
+    onDestroy(() => {
+        stopWS();
+    });
 
 </script>
 

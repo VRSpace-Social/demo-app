@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { navigating } from '$app/stores';
+    import ToastContainer from '$lib/ToastContainer.svelte';
 
     onMount(async () => {
         console.log("Insert any code you want to run when the page loads here.");
@@ -67,7 +68,12 @@
   }
 </style>
 
-<slot> 
 
-</slot>
+<main>
+    <slot> 
+
+    </slot>
+    <ToastContainer />
+</main>
+
 
