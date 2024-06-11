@@ -2,6 +2,7 @@
     import { onMount } from "svelte";
     import { navigating } from '$app/stores';
     import ToastContainer from '$lib/ToastContainer.svelte';
+    import { showToast } from '$utils/toast';
 
     onMount(async () => {
         console.log("Insert any code you want to run when the page loads here.");
@@ -15,6 +16,7 @@
             console.log("VRSpace server is running!");
         } else {
             console.log("VRSpace server is not running!");
+            showToast("VRSpace server appears to be not running!");
             const vrcWsElement = document.getElementById("vrc-ws");
             if (vrcWsElement !== null) {
                 vrcWsElement.style.display = "none";

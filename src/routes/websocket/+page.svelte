@@ -10,6 +10,7 @@
 
     import { onMount, onDestroy } from "svelte";
     import { showToast } from '$utils/toast';
+  import { show } from "@tauri-apps/api/app";
 
     let isWSRunning: boolean;
     let webSocket: WebSocket; // Declare webSocket as a global variable
@@ -29,6 +30,7 @@
         webSocket = new WebSocket("wss://pipeline.vrchat.cloud/?authToken=" + authCookie);
         webSocket.onopen = function () {
             console.log("Connected to WebSocket server");
+            showToast("Connected to WebSocket server");
             isWSRunning = true;
         };
         webSocket.onmessage = async function (event) {
@@ -44,6 +46,7 @@
                 case "friend-active": {
                     let jsonData = JSON.parse(JSON.parse(event.data.toString()).content).user;
                     console.log(jsonData.displayName + " is now active (online on VRC Website or API)");
+                    showToast(jsonData.displayName + " is now active (online on VRC Website or API)");
                     break;
                 }
 
@@ -60,6 +63,7 @@
                     }
                     let friendUsername = friendData.displayName;
                     console.log(friendUsername + " is pending offline");
+                    showToast(friendUsername + " is pending offline");
                     break;
                 }
 
@@ -75,12 +79,14 @@
                     }
                     let friendUsername = friendData.displayName;
                     console.log(friendUsername + " is no longer your friend");
+                    showToast(friendUsername + " is no longer your friend");
                     break;
                 }
 
                 case "friend-online": {
                     let friendUsername = JSON.parse(JSON.parse(event.data.toString()).content).user.displayName;
                     console.log(friendUsername + " is online on VRChat Client");
+                    showToast(friendUsername + " is online on VRChat Client");
                     break;
                 }
 
@@ -92,6 +98,7 @@
 
                     if (location === "traveling" && travelingToLocation !== "" && jsonData.worldId.substring(0, 5) === "wrld_") {
                         // User IS TRAVELING to instance
+                        debugger;
                         let worldId = jsonData.worldId;
                         let instanceId = jsonData.travelingToLocation.split(":")[1];
                         let instanceData = await getInstanceInfo(worldId, instanceId).catch(e => {
@@ -100,8 +107,10 @@
                             return undefined;
                         });
                         console.log("User (" + jsonData.user.displayName + ") is traveling to world: [" + instanceData?.world.name + "]");
+                        showToast("User (" + jsonData.user.displayName + ") is traveling to world: [" + instanceData?.world.name + "]");
 
                     } else if (location !== "" && travelingToLocation === "" && location.substring(0, 5) === "wrld_") {
+                        debugger;
                         // User HAS TRAVELED to instance
                         let worldId = jsonData.worldId;
                         let instanceId = location.split(":")[1];
@@ -111,9 +120,11 @@
                             return undefined;
                         });
                         console.log("User (" + jsonData.user.displayName + ") has traveled to world: [" + instanceData?.world.name + "]");
+                        showToast("User (" + jsonData.user.displayName + ") has traveled to world: [" + instanceData?.world.name + "]");
                     }
                     else if (location === "private" && jsonData.worldId === "private" && travelingToLocation === "private") {
                         console.log("User (" + jsonData.user.displayName + ") is in a private instance (probably in a private world or in a private instance of a public world)");
+                        showToast("User (" + jsonData.user.displayName + ") is in a private instance (probably in a private world or in a private instance of a public world)");
                     }
                     else {
                         console.debug("PLEASE CHECK, NEEDS TO BE IMPLEMENTED");
@@ -136,6 +147,7 @@
         };
         webSocket.onclose = function () {
             console.log("Disconnected from WebSocket server");
+            showToast("Disconnected from WebSocket server");
             isWSRunning = false;
         };
     }
