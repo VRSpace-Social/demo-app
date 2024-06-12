@@ -1,0 +1,3 @@
+[submodule "vrspace-api"]
+	path = vrspace-api
+	url = https://github.com/VRSpace-Social/vrspace
