@@ -11,6 +11,7 @@
 </script>
 
 <div class="container">
+  <title>VRSpace</title>
   <h1>Welcome to Tauri!</h1>
 
   <div class="row">
