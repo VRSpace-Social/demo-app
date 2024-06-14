@@ -1,8 +1,18 @@
 <script lang="ts">
-    import { onMount } from "svelte";
-    import { navigating } from '$app/stores';
+    import { onMount, afterUpdate, beforeUpdate } from "svelte";
     import ToastContainer from '$lib/ToastContainer.svelte';
     import { showToast } from '$utils/toast';
+    import { createStore, updateStore } from '$utils/store';
+
+    // Setup a global state variable to store if the VRSpace server is running, so that other components can access it.
+    let isVrSpaceServerRunning = false;
+    let storeValue: string = String(isVrSpaceServerRunning);
+
+     beforeUpdate(() => {
+        console.log("Insert any code you want to run before the page updates here.");
+        storeValue = String(isVrSpaceServerRunning);
+        updateStore(storeValue);
+    });
 
     onMount(async () => {
         console.log("Insert any code you want to run when the page loads here.");
@@ -14,27 +24,26 @@
         });
         if(await hiRes.text() === "hello!") {
             console.log("VRSpace server is running!");
+            isVrSpaceServerRunning = true;
         } else {
             console.log("VRSpace server is not running!");
+            isVrSpaceServerRunning = false;
             showToast("VRSpace server appears to be not running!");
             const vrcWsElement = document.getElementById("vrc-ws");
             if (vrcWsElement !== null) {
                 vrcWsElement.style.display = "none";
             }
         }
+        storeValue = String(isVrSpaceServerRunning);
     });
 
-    $: if($navigating) {
-        console.log($navigating);
-        if($navigating.from?.route.id === "/websocket") {
-            
-        }
-    };
+    createStore(storeValue);
 </script>
 
 <nav class="navbar">
 	<a href="/">Home</a>
 	<a href="/about">About</a>
+    <a href="/friends">VRC Friends</a>
     <a id="vrc-ws" href="/websocket">VRChat WebSocket</a>
 </nav>
 

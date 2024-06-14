@@ -178,10 +178,12 @@
             console.log("Disconnected from WebSocket server");
             showToast("Disconnected from WebSocket server");
             texts = [...texts, "Disconnected from WebSocket server"];
-            wsTimer = // In seconds
-                Math.floor((timerEnd.getTime() - timerStart.getTime()) / 1000);
+            wsTimer = Math.floor((timerEnd.getTime() - timerStart.getTime()) / 1000);
             texts = [...texts, "WebSocket was running for " + wsTimer + " seconds"];
             isWSRunning = false;
+            if(event.reason === "MANUAL_CLOSE_BUTTON") {
+                reRunWS();
+            }
         };
     }
 
@@ -191,8 +193,10 @@
         }
     }
 
-    function stopWS() {
-        if (webSocket) {
+    function stopWS(event?: MouseEvent) {
+        if (event) {
+            webSocket.close(1000, "MANUAL_CLOSE_BUTTON");
+        } else {
             webSocket.close();
         }
     }
