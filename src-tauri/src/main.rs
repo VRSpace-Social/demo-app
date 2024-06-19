@@ -176,7 +176,7 @@ async fn start_websocket_client(app_handle: AppHandle, shutdown_rx: oneshot::Rec
         .headers_mut()
         .insert(USER_AGENT, HeaderValue::from_static("VRSpace-App@0.0.1"));
 
-    let (ws_stream, _) = connect_async_tls_with_config(request, None, None)
+    let (ws_stream, _) = connect_async_tls_with_config(request, None, false, None)
         .await
         .expect("Failed to connect");
     println!("WebSocket connected");
