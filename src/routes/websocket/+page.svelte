@@ -1,15 +1,25 @@
 <script lang="ts">
   import { invoke } from "@tauri-apps/api/tauri";
+  import { listen } from "@tauri-apps/api/event";
+  import { fetchData } from "$utils/fetch";
+
+  /*
+  await listen("ws_connected", (event) => {
+      if(event.payload === "ws_connected") console.log("WebSocket connected!");
+    });
+
+    await listen("ws_msg", (event) => {
+      // event.event is the event name (useful if you want to use a single callback fn for multiple event types)
+      // event.payload is the payload object
+      console.log(event.payload);
+    });
+
+    await listen("ws_disconnected", (event) => {
+      if(event.payload === "ws_disconnected") console.log("WebSocket disconnected!");
+    });
+  */
+
   let inputValue: string = "";
-  async function sha256(message: string) {
-    const msgBuffer = new TextEncoder().encode(message);
-    const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("");
-    return hashHex;
-  }
 
   let texts: Array<string> = [];
 
@@ -46,59 +56,64 @@
     return result.json();
   }
 
-  function runWebSocket(authCookie: string) {
-    webSocket = new WebSocket(
-      "wss://pipeline.vrchat.cloud/?authToken=" + authCookie
-    );
-    webSocket.onopen = function () {
-      timerStart = new Date();
-      console.log("Connected to WebSocket server");
-      showToast("Connected to WebSocket server");
-      texts = [...texts, "Connected to WebSocket server"];
-      isWSRunning = true;
-    };
-    webSocket.onmessage = async function (event) {
-      if (event.data === "reload") {
-        setTimeout(() => {
-          webSocket.close();
-          self.location.reload();
-        }, 300);
-      }
+  async function startWS(bkAuthCookie: string) {
+    invoke("start_ws", { authcookie: bkAuthCookie })
+      .then(() => {
+        console.log("Sent start event to Rust WS client");
+      })
+      .catch((error: any) => {
+        console.error("Failed to start WebSocket:", error);
+      });
 
-      if (JSON.parse(event.data.toString()).err) {
-        texts = [...texts, JSON.parse(event.data.toString()).err];
+    await listen("ws_connected", async (event) => {
+      if (event.payload === "ws_connected") {
+        console.log("WebSocket connected!");
+        timerStart = new Date();
+        texts = [...texts, "Connected to WebSocket server"];
+        isWSRunning = true;
+        await handleWSMsg();
       }
+    });
+  }
 
-      switch (JSON.parse(event.data.toString()).type) {
+  async function handleWSMsg() {
+    await listen("ws_msg", async (event) => {
+      // Handling of WebSocket messages
+      let wsMsg: any = event.payload;
+      console.log(wsMsg);
+
+      // WS Message error
+      if (wsMsg.err) {
+        texts = [...texts, wsMsg.err];
+      }
+      let msgType = wsMsg.type;
+      let msgContent = JSON.parse(wsMsg.content);
+      // Here we can handle different types of messages via a switch statement
+      switch (msgType) {
         case "friend-active": {
-          let jsonData = JSON.parse(
-            JSON.parse(event.data.toString()).content
-          ).user;
           console.log(
-            jsonData.displayName +
+            msgContent.user.displayName +
               " is now active (online on VRC Website or API)"
           );
           showToast(
-            jsonData.displayName +
+            msgContent.user.displayName +
               " is now active (online on VRC Website or API)"
           );
           texts = [
             ...texts,
-            jsonData.displayName +
+            msgContent.user.displayName +
               " is now active (online on VRC Website or API)",
           ];
           break;
         }
 
         case "friend-offline": {
-          let friendData = await getUserInfo(
-            JSON.parse(JSON.parse(event.data.toString()).content).userId
-          ).catch((e) => {
+          let friendData = await getUserInfo(msgContent.userId).catch((e) => {
             let errorResponse = JSON.parse(e.response?.data);
             console.log(errorResponse);
-            console.log(
+            console.error(
               "[!!] ERROR on" +
-                JSON.parse(event.data.toString()) +
+                wsMsg +
                 "\nError while trying to get friend data: \n" +
                 e
             );
@@ -116,13 +131,12 @@
         }
 
         case "friend-delete": {
-          console.debug(event.data.toString());
-          let friendData = await getUserInfo(
-            JSON.parse(JSON.parse(event.data.toString()).content).userId
-          ).catch((e) => {
-            console.log(
+          let friendData = await getUserInfo(msgContent.userId).catch((e) => {
+            let errorResponse = JSON.parse(e.response?.data);
+            console.log(errorResponse);
+            console.error(
               "[!!] ERROR on" +
-                JSON.parse(event.data.toString()) +
+                wsMsg +
                 "\nError while trying to get friend data: \n" +
                 e
             );
@@ -140,15 +154,30 @@
         }
 
         case "friend-online": {
-          let friendUsername = JSON.parse(
-            JSON.parse(event.data.toString()).content
-          ).user.displayName;
+          let friendUsername = msgContent.user.displayName;
           console.log(friendUsername + " is online on VRChat Client");
           showToast(friendUsername + " is online on VRChat Client");
           texts = [...texts, friendUsername + " is online on VRChat Client"];
           break;
         }
 
+        default: {
+          try {
+            console.warn(
+              "PLEASE CHECK, NEEDS TO BE IMPLEMENTED, TYPE: " + msgType
+            );
+            console.log(msgContent);
+          } catch (e) {
+            console.error("Error while trying to parse message: " + e);
+            console.log(wsMsg);
+          }
+        }
+      }
+    });
+
+    /*
+    webSocket.onmessage = async function (event) {
+      switch (JSON.parse(event.data.toString()).type) 
         case "friend-location": {
           let jsonData = JSON.parse(JSON.parse(event.data.toString()).content);
           let location = jsonData.location;
@@ -287,11 +316,12 @@
         reRunWS();
       }
     };
+    */
   }
 
   function doRunWS(authCookie: string) {
     if (!isWSRunning) {
-      runWebSocket(authCookie);
+      startWS(authCookie);
     }
   }
 
@@ -305,28 +335,19 @@
 
   onMount(async () => {
     console.log("Welcome to VRChat WebSocket using VRSpace API!");
-    const authCookieRequest = await fetch(
-      "http://localhost:3000/api/getAuthCookie",
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    ).catch((e) => {
+    const authCookie: string | undefined = await fetchData("http://localhost:3000/api/getAuthCookie")
+    .catch((e) => {
       console.error("Error while trying to get auth cookie: " + e);
       return undefined;
     });
-    const authCookie = await authCookieRequest?.text();
     if (authCookie) {
       bkAuthCookie = authCookie;
-      //doRunWS(authCookie);
-      invoke("start_ws", { authcookie: bkAuthCookie })
+      await startWS(bkAuthCookie)
         .then(() => {
-          console.log("Sent start event to Rust WS client");
+          console.log("Starting VRC WebSocket...");
         })
-        .catch((error: any) => {
-          console.error("Failed to start WebSocket:", error);
+        .catch((e) => {
+          console.error("Error while trying to start WebSocket: " + e);
         });
     } else {
       console.error("Auth cookie is not found");
@@ -340,6 +361,13 @@
       .then((result) => {
         if (result) {
           console.log("WebSocket stopped");
+          timerEnd = new Date();
+          console.log("Disconnected from WebSocket server");
+          showToast("Disconnected from WebSocket server");
+          texts = [...texts, "Disconnected from WebSocket server"];
+          wsTimer = Math.floor((timerEnd.getTime() - timerStart.getTime()) / 1000);
+          texts = [...texts, "WebSocket was running for " + wsTimer + " seconds"];
+          isWSRunning = false;
         } else {
           console.log("WebSocket was not running");
         }

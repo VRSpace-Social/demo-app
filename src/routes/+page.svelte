@@ -1,34 +1,33 @@
 <script lang="ts">
-  import { invoke } from "@tauri-apps/api/tauri";
-  import { listen } from "@tauri-apps/api/event";
-  import { onMount } from "svelte";
+  import {fetchData} from '$utils/fetch';
 
   let url = "";
 
   async function greet() {
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    await invoke("open_settings_window", { url });
+    await sendNotif();
+    const response = await fetchData(url);
+    console.log(response);
   }
 
-  onMount(async () => {
-
-    document.addEventListener('DOMContentLoaded', () => {
-      // This will wait for the window to load, but you could
-      // run this function on whatever trigger you want
-      invoke('close_splashscreen')
-    })
 
 
-    await listen("ws_connected", (event) => {
-      if(event.payload === "ws_connected") console.log("WebSocket connected!");
-    });
-
-    await listen("ws_msg", (event) => {
-      // event.event is the event name (useful if you want to use a single callback fn for multiple event types)
-      // event.payload is the payload object
-      console.log(event.payload);
-    });
-  });
+  import { isPermissionGranted, requestPermission, sendNotification } from '@tauri-apps/api/notification';
+  async function sendNotif() {
+    let permissionGranted = await isPermissionGranted();
+    if (!permissionGranted) {
+      const permission = await requestPermission();
+      permissionGranted = permission === 'granted';
+    }
+    if (permissionGranted) {
+      sendNotification({ 
+        sound: 'Mail',
+        icon: 'icons/128x128@2x.png',
+        title: 'TAURI', 
+        body: 'Tauri is awesome!'
+      });
+    }
+  }
 </script>
 
 <div class="container">
@@ -50,7 +49,7 @@
   <p>Click on the Tauri, Vite, and SvelteKit logos to learn more.</p>
 
   <form class="row" on:submit|preventDefault={greet}>
-    <input id="greet-input" placeholder="Enter a name..." bind:value={url} />
+    <input id="greet-input" placeholder="Test URL to fetch..." bind:value={url} />
     <button type="submit">Greet</button>
   </form>
 </div>

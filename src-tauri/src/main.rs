@@ -4,13 +4,14 @@
 use futures_util::StreamExt;
 use serde_json::Value;
 use std::sync::{Arc, Mutex};
-use tauri::{AppHandle, Manager, State, WindowBuilder, WindowEvent, WindowUrl};
+use tauri::{AppHandle, Manager, State, WindowEvent};
 use tokio::sync::oneshot;
 use tokio_tungstenite::connect_async_tls_with_config;
 use tokio_tungstenite::tungstenite::client::IntoClientRequest;
 use tokio_tungstenite::tungstenite::http::header::{HeaderValue, USER_AGENT};
 use tokio_tungstenite::tungstenite::protocol::Message;
 use url::Url;
+use reqwest::header::USER_AGENT as REQ_USER_AGENT;
 
 #[derive(Clone)]
 struct SharedState {
@@ -19,29 +20,21 @@ struct SharedState {
 }
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
 
 #[tauri::command]
-async fn open_settings_window(app: AppHandle) -> Result<(), String> {
-    let result = WindowBuilder::new(&app, "settings", WindowUrl::App("websocket".into()))
-        .fullscreen(false)
-        .resizable(true)
-        .title("WebSocket")
-        .center()
-        .build();
-    match result {
-        Ok(_) => {
-            println!("Window Created Successfully!");
-            Ok(())
-        }
-        Err(err) => {
-            println!("Failed to Create Window {}", err);
-            Err("Failed to create Window".to_string())
-        }
-    }
+async fn fetch_url(url: String, set_user_agent: bool) -> Result<String, String> {
+    let client = reqwest::Client::new();
+    let request = client.get(&url);
+
+    let request = if set_user_agent {
+        request.header(REQ_USER_AGENT, "VRSpaceApp")
+    } else {
+        request
+    };
+
+    let response = request.send().await.map_err(|e| e.to_string())?;
+    let body = response.text().await.map_err(|e| e.to_string())?;
+    Ok(body)
 }
 
 #[tauri::command]
@@ -152,10 +145,9 @@ async fn main() {
             shutdown_tx: Arc::new(Mutex::new(None)),
         })))
         .invoke_handler(tauri::generate_handler![
-            greet,
-            open_settings_window,
             start_ws,
-            stop_ws
+            stop_ws,
+            fetch_url
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -224,6 +216,7 @@ async fn handle_connection(
             _ = &mut shutdown_rx => {
                 println!("Received shutdown signal");
                 ws_stream.close(None).await.expect("Failed to close WebSocket connection");
+                app_handle.emit_all("ws_disconnected", "ws_disconnected").unwrap();
                 break;
             },
         }

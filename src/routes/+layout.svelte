@@ -1,9 +1,8 @@
 <script lang="ts">
-    import { onMount, afterUpdate, beforeUpdate } from "svelte";
+    import { onMount, beforeUpdate } from "svelte";
     import ToastContainer from '$lib/ToastContainer.svelte';
     import { showToast } from '$utils/toast';
     import { createStore, updateStore } from '$utils/store';
-    import { invoke } from '@tauri-apps/api/tauri';
 
     // Setup a global state variable to store if the VRSpace server is running, so that other components can access it.
     let isVrSpaceServerRunning = false;
