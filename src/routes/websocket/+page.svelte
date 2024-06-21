@@ -58,7 +58,7 @@
 
   async function startWS(bkAuthCookie: string) {
     invoke("start_ws", { authcookie: bkAuthCookie })
-      .then(() => {
+      .then(async () => {
         console.log("Sent start event to Rust WS client");
       })
       .catch((error: any) => {
@@ -335,16 +335,41 @@
 
   onMount(async () => {
     console.log("Welcome to VRChat WebSocket using VRSpace API!");
-    const authCookie: string | undefined = await fetchData("http://localhost:3000/api/getAuthCookie")
+    const authCookie: string | undefined = await fetchData("http://localhost:3000/api/getAuthCookie", true)
     .catch((e) => {
       console.error("Error while trying to get auth cookie: " + e);
       return undefined;
     });
     if (authCookie) {
+      if(authCookie === "Not Found :(") {
+        console.error("Auth cookie is not found");
+        showToast("Auth cookie is not found");
+        texts = [...texts, "Auth cookie is not found"];
+        invoke("stop_ws");
+        return;
+      }
       bkAuthCookie = authCookie;
       await startWS(bkAuthCookie)
-        .then(() => {
+        .then(async () => {
           console.log("Starting VRC WebSocket...");
+          await listen("ws_err", async (event) => {
+          console.error("WebSocket error: " + event.payload);
+          texts = [...texts, "WebSocket error: " + event.payload];
+          invoke("stop_ws")
+            .then((result) => {
+              if (result) {
+                console.log("WebSocket stopped");
+                console.log("Disconnected from WebSocket server");
+                texts = [...texts, "Disconnected from WebSocket server"];
+                isWSRunning = false;
+              } else {
+                console.log("WebSocket was not running");
+              }
+            })
+            .catch((error) => {
+              console.error("Failed to stop WebSocket:", error);
+            });
+        });
         })
         .catch((e) => {
           console.error("Error while trying to start WebSocket: " + e);

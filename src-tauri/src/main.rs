@@ -155,10 +155,18 @@ async fn main() {
 
 async fn start_websocket_client(app_handle: AppHandle, shutdown_rx: oneshot::Receiver<()>, auth_cookie: &str) {
     println!("Preparing to start up WebSocket...");
+    println!("Auth cookie: {}", auth_cookie);
+    if auth_cookie == "Not Found :(" {
+        println!("No auth cookie found, aborting WebSocket connection");
+        app_handle.emit_all("ws_err", "No auth cookie found, aborting WebSocket connection").unwrap();
+        return;
+    }
     let url = Url::parse(
         format!("wss://pipeline.vrchat.cloud/?authToken={}", auth_cookie).as_str()
     )
     .unwrap();
+
+    println!("Connecting to WebSocket at: {}", url);
 
     // Build the custom WebSocket request
     let mut request = url
@@ -208,6 +216,7 @@ async fn handle_connection(
                     Some(Ok(_)) => {},
                     Some(Err(e)) => {
                         eprintln!("WebSocket error: {}", e);
+                        app_handle.emit_all("ws_err", format!("{}", e)).unwrap();
                         break;
                     },
                     None => break,
