@@ -196,12 +196,19 @@ async fn handle_connection(
     loop {
         tokio::select! {
             msg = ws_stream.next() => {
+                //println!("Received message: {:?}", msg);
                 match msg {
                     Some(Ok(Message::Text(text))) => {
                         // Parse the text message as JSON
                         match serde_json::from_str::<Value>(&text) {
+                            
                             Ok(json) => {
                                 // Emit an event to the frontend with the parsed JSON
+                                //println!("Received JSON: {:?}", json);
+                                if json["err"] == "authToken doesn't correspond with an active session" {
+                                    app_handle.emit_all("ws_err", json.clone()).unwrap();
+                                    break;
+                                }
                                 app_handle.emit_all("ws_msg", json.clone()).unwrap();
                             },
                             Err(e) => {

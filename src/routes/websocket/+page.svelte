@@ -335,13 +335,15 @@
 
   onMount(async () => {
     console.log("Welcome to VRChat WebSocket using VRSpace API!");
-    const authCookie: string | undefined = await fetchData("http://localhost:3000/api/getAuthCookie", true)
-    .catch((e) => {
+    const authCookie: string | undefined = await fetchData(
+      "http://localhost:3000/api/getAuthCookie",
+      true
+    ).catch((e) => {
       console.error("Error while trying to get auth cookie: " + e);
       return undefined;
     });
     if (authCookie) {
-      if(authCookie === "Not Found :(") {
+      if (authCookie === "Not Found :(") {
         console.error("Auth cookie is not found");
         showToast("Auth cookie is not found");
         texts = [...texts, "Auth cookie is not found"];
@@ -352,24 +354,32 @@
       await startWS(bkAuthCookie)
         .then(async () => {
           console.log("Starting VRC WebSocket...");
-          await listen("ws_err", async (event) => {
-          console.error("WebSocket error: " + event.payload);
-          texts = [...texts, "WebSocket error: " + event.payload];
-          invoke("stop_ws")
-            .then((result) => {
-              if (result) {
-                console.log("WebSocket stopped");
-                console.log("Disconnected from WebSocket server");
-                texts = [...texts, "Disconnected from WebSocket server"];
-                isWSRunning = false;
-              } else {
-                console.log("WebSocket was not running");
-              }
-            })
-            .catch((error) => {
-              console.error("Failed to stop WebSocket:", error);
-            });
-        });
+          await listen("ws_err", async (event: any) => {
+            if (event.payload.err) {
+              console.error("WebSocket VRChat ERROR: " + event.payload.err);
+              texts = [
+                ...texts,
+                "WebSocket VRChat ERROR: " + event.payload.err,
+              ];
+            } else {
+              console.error("WebSocket LOGIC error: " + event.payload);
+              texts = [...texts, "WebSocket LOGIC error: " + event.payload];
+            }
+            invoke("stop_ws")
+              .then((result) => {
+                if (result) {
+                  console.log("WebSocket stopped");
+                  console.log("Disconnected from WebSocket server");
+                  texts = [...texts, "Disconnected from WebSocket server"];
+                  isWSRunning = false;
+                } else {
+                  console.log("WebSocket was not running");
+                }
+              })
+              .catch((error) => {
+                console.error("Failed to stop WebSocket:", error);
+              });
+          });
         })
         .catch((e) => {
           console.error("Error while trying to start WebSocket: " + e);
@@ -390,8 +400,13 @@
           console.log("Disconnected from WebSocket server");
           showToast("Disconnected from WebSocket server");
           texts = [...texts, "Disconnected from WebSocket server"];
-          wsTimer = Math.floor((timerEnd.getTime() - timerStart.getTime()) / 1000);
-          texts = [...texts, "WebSocket was running for " + wsTimer + " seconds"];
+          wsTimer = Math.floor(
+            (timerEnd.getTime() - timerStart.getTime()) / 1000
+          );
+          texts = [
+            ...texts,
+            "WebSocket was running for " + wsTimer + " seconds",
+          ];
           isWSRunning = false;
         } else {
           console.log("WebSocket was not running");
