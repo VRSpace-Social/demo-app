@@ -1,6 +1,8 @@
 <script lang="ts">
   import {fetchData} from '$utils/fetch';
 
+  import { Card, Button } from 'svelte-ux';
+
   let url = "";
 
   async function greet() {
@@ -52,7 +54,21 @@
     <input id="greet-input" placeholder="Test URL to fetch..." bind:value={url} />
     <button type="submit">Greet</button>
   </form>
+
+  <div class="grid grid-cols-2 gap-3">
+    <Card title="Title" subheading="with actions">
+      <div slot="actions">
+        <Button>Action 1</Button>
+        <Button>Action 2</Button>
+      </div>
+    </Card>
+    <Card title="Title" subheading="with content" loading>
+      <div slot="contents" class="bg-danger/10">Contents</div>
+    </Card>
+  </div>
 </div>
+
+
 
 <style>
   .logo.vite:hover {
