@@ -1,22 +1,40 @@
 <script lang="ts">
-  interface FriendOnlineData {
-    username: string;
-    worldName?: string;
-    worldId?: string;
-    instanceId?: string;
-    instanceType: string;
-    players?: number;
-    maxPlayers?: number;
-    worldImageUrl: string | null | undefined;
-  }
   import { onMount } from "svelte";
   import { writable } from "svelte/store";
   import "@fortawesome/fontawesome-free/css/all.min.css";
   import { showToast } from '$utils/toast';
   import { readStore } from '$utils/store';
+  import { Card } from 'svelte-ux';
+  import { Button } from 'svelte-ux';
+
+  interface FriendOnlineData {
+    username: string,
+    worldName?: string,
+    worldId?: string
+    instanceId?: string
+    instanceType: string
+    players?: number
+    maxPlayers?: number
+    worldImageUrl?: string | null | undefined,
+    userImageUrl: string | undefined,
+    canJoin: boolean
+  }
+
+  interface FriendSearchData {
+    username: string,
+    worldName?: string,
+    worldId?: string
+    instanceId?: string
+    instanceType?: string
+    players?: number
+    maxPlayers?: number
+    worldImageUrl?: string | null | undefined,
+    userImageUrl: string | undefined,
+    canJoin?: boolean
+  }
 
   const storeData = readStore();
-  let isVRSpaceRunning: boolean = storeData ? true : false;
+  let isVRSpaceRunning: boolean = !!storeData;
   const onlineFriends = writable<Array<FriendOnlineData>>([]);
   const privateFriends = writable<Array<FriendOnlineData>>([]);
   const websiteFriends = writable<Array<FriendOnlineData>>([]);
@@ -50,13 +68,6 @@
 </script>
 
 <main>
-  <head>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-    />
-  </head>
-  <body>
     <div class="container mt-4">
       {#if $isLoading}
         <div class="spinner-container">
@@ -68,96 +79,59 @@
       {:else}
         <div>
           <h2 class="category-title">Friends in Worlds you can join!</h2>
-          <div class="row">
+          <div class="grid grid-cols-3 gap-3">
             {#each $onlineFriends as friend}
-              <div class="col-md-4">
-                <div class="card friend-card">
-                  <img
-                    src={friend.worldImageUrl || "default-image.jpg"}
-                    class="card-img-top"
-                    alt={friend.worldName}
-                  />
-                  <div class="card-body">
-                    <h5 class="card-title">{friend.username} is playing</h5>
-                    <a
-                      href={`vrchat://launch?ref=vrchat.com&id=${friend.instanceId}`}
-                      ><i class="fa-solid fa-earth-americas"></i>
-                      {friend.worldName}</a
-                    >
-                    <p class="card-text">
-                      <small
-                        >Players: {friend.players}/{friend.maxPlayers}</small
-                      >
-                      <br />
-                      <small>{friend.instanceType}</small>
-                    </p>
-                  </div>
+              <Card title="{friend.username} is playing" subheading="{friend.worldName}">
+                <img src={friend.worldImageUrl || "default-image.jpg"} alt={friend.worldName}  />
+                <div slot="actions">
+                  <a href={`vrchat://launch?ref=vrchat.com&id=${friend.instanceId}`}>
+                    <Button>Join</Button>
+                  </a>
+                  <Button disabled>{friend.instanceType}</Button>
                 </div>
-              </div>
+                <p>
+                  <small>Players: {friend.players}/{friend.maxPlayers}</small>
+                </p>
+              </Card>
             {/each}
           </div>
         </div>
 
         <div>
           <h2 class="category-title">Friends in Private Worlds</h2>
-          <div class="row">
+          <div class="grid grid-cols-3 gap-3">
             {#each $privateFriends as friend}
-              <div class="col-md-4">
-                <div class="card friend-card">
-                  <img
-                    src={friend.worldImageUrl || "default-image.jpg"}
-                    class="card-img-top"
-                    alt={friend.worldName}
-                  />
-                  <div class="card-body">
-                    <h5 class="card-title">{friend.username} is playing</h5>
-                    <i class="fa-solid fa-earth-americas"></i>
-                    {friend.worldName}
-                    <p class="card-text">
-                      <small
-                        >Players: {friend.players}/{friend.maxPlayers}</small
-                      >
-                      <br />
-                      <small>{friend.instanceType}</small>
-                    </p>
-                  </div>
+              <Card title="{friend.username} is playing" subheading="{friend.worldName}">
+                <img src={friend.userImageUrl || "default-image.jpg"} alt={friend.worldName} />
+                <div slot="actions">
+                  <Button disabled>{friend.instanceType}</Button>
                 </div>
-              </div>
+                <p>
+                  <small>Players: {friend.players}/{friend.maxPlayers}</small>
+                </p>
+              </Card>
             {/each}
           </div>
         </div>
 
         <div>
           <h2 class="category-title">Friends Active on the Website</h2>
-          <div class="row">
+          <div class="grid grid-cols-3 gap-3">
             {#each $websiteFriends as friend}
-              <div class="col-md-4">
-                <div class="card friend-card">
-                  <img
-                    src={friend.worldImageUrl || "default-image.jpg"}
-                    class="card-img-top"
-                    alt={friend.worldName}
-                  />
-                  <div class="card-body">
-                    <h5 class="card-title">{friend.username} is playing</h5>
-                    <i class="fa-solid fa-earth-americas"></i>
-                    {friend.worldName}
-                    <p class="card-text">
-                      <small
-                        >Players: {friend.players}/{friend.maxPlayers}</small
-                      >
-                      <br />
-                      <small>{friend.instanceType}</small>
-                    </p>
-                  </div>
+              <Card title="{friend.username} is playing" subheading="{friend.worldName}">
+                <img src={friend.userImageUrl || "default-image.jpg"} alt={friend.worldName} />
+                <div slot="actions">
+                  <Button disabled>{friend.instanceType}</Button>
                 </div>
-              </div>
+                <p >
+                  <small>Players: {friend.players}/{friend.maxPlayers}</small>
+                </p>
+              </Card>
             {/each}
           </div>
         </div>
       {/if}
     </div>
-  </body>
 </main>
 
 <style>
@@ -166,29 +140,22 @@
     color: white;
   }
 
-  .friend-card {
-    background-color: #3b3b3b;
-    border-radius: 10px;
-    overflow: hidden;
-    margin-bottom: 10px;
+  .grid {
+    display: grid;
   }
 
-  .friend-card img {
-    height: 261px;
-    object-fit: cover;
+  .grid-cols-3 {
+    grid-template-columns: repeat(3, 1fr);
   }
 
-  .friend-card .card-body {
-    padding: 10px;
-  }
-
-  .friend-card:hover {
-    background-color: #4b4b4b;
+  .gap-3 {
+    gap: 20px;
   }
 
   .category-title {
     margin-top: 20px;
     margin-bottom: 10px;
+    text-align: center;
   }
 
   .spinner-container {

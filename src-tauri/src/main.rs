@@ -204,7 +204,7 @@ async fn handle_connection(
                             
                             Ok(json) => {
                                 // Emit an event to the frontend with the parsed JSON
-                                //println!("Received JSON: {:?}", json);
+                                println!("Received JSON: {:?}", json);
                                 if json["err"] == "authToken doesn't correspond with an active session" {
                                     app_handle.emit_all("ws_err", json.clone()).unwrap();
                                     break;
