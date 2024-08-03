@@ -18,7 +18,12 @@ tokio = { version = "1", features = ["full"] }
 tokio-tungstenite = { version = "0.22.0", features = ["native-tls"] }
 futures-util = "0.3"
 url = "2.2"
-reqwest = { version = "0.12.5", features = ["json"] }
+reqwest = { version = "0.12.5", features = ["json", "cookies"] }
+vrchatapi = {path = "\\\\wsl.localhost\\Debian\\home\\lyzcoote\\Gits\\vrchatapi-rust"}
+log = "0.4"
+env_logger = "0.10"
+fern = { version = "0.6", features = ["colored"] }
+chrono = "0.4"
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!

@@ -1,15 +1,30 @@
 <script lang="ts">
   import {fetchData} from '$utils/fetch';
-
+  import { invoke } from "@tauri-apps/api/tauri";
   import { Card, Button } from 'svelte-ux';
 
   let url = "";
+  let username = "";
+  let password = "";
+  let twofactorcode = "";
 
   async function greet() {
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
     await sendNotif();
     const response = await fetchData(url);
     console.log(response);
+  }
+
+
+  async function vrc_test() {
+    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
+    invoke("vrc_test", { username: username, password: password/*, twofactorcode: twofactorcode*/ })
+      .then(async () => {
+        console.log("Sent start event to Rust VRC client");
+      })
+      .catch((error: any) => {
+        console.error("Failed to start VRC:", error);
+      });
   }
 
 
@@ -53,6 +68,14 @@
   <form class="row" on:submit|preventDefault={greet}>
     <input id="greet-input" placeholder="Test URL to fetch..." bind:value={url} />
     <button type="submit">Greet</button>
+  </form>
+
+
+  <form class="row" on:submit|preventDefault={vrc_test}>
+    <input id="username-input" placeholder="usernsme" bind:value={username} />
+    <input id="password-input" placeholder="password" bind:value={password} />
+    <input id="twofactorcode-input" placeholder="twofactorcode" bind:value={twofactorcode} />
+    <button type="submit">Test VRC</button>
   </form>
 
   <div class="grid grid-cols-2 gap-3">

@@ -1,13 +1,15 @@
 <script lang="ts">
   interface FriendOnlineData {
-    username: string;
-    worldName?: string;
-    worldId?: string;
-    instanceId?: string;
-    instanceType: string;
-    players?: number;
-    maxPlayers?: number;
-    worldImageUrl: string | null | undefined;
+    username: string,
+    worldName?: string,
+    worldId?: string
+    instanceId?: string
+    instanceType: string
+    players?: number
+    maxPlayers?: number
+    worldImageUrl?: string | null | undefined,
+    userImageUrl: string | undefined,
+    canJoin: boolean
   }
   import { onMount } from "svelte";
   import { writable } from "svelte/store";
@@ -73,17 +75,22 @@
               <div class="col-md-4">
                 <div class="card friend-card">
                   <img
-                    src={friend.worldImageUrl || "default-image.jpg"}
+                    src={friend.worldImageUrl || friend.userImageUrl}
                     class="card-img-top"
                     alt={friend.worldName}
                   />
                   <div class="card-body">
                     <h5 class="card-title">{friend.username} is playing</h5>
-                    <a
-                      href={`vrchat://launch?ref=vrchat.com&id=${friend.instanceId}`}
-                      ><i class="fa-solid fa-earth-americas"></i>
-                      {friend.worldName}</a
-                    >
+                    {#if friend.canJoin}
+                      <a
+                        href={`vrchat://launch?ref=vrchat.com&id=${friend.instanceId}`}
+                        ><i class="fa-solid fa-earth-americas"></i>
+                        {friend.worldName}</a
+                      >
+                    {:else}
+                      <i class="fa-solid fa-earth-americas"></i>
+                      {friend.worldName}
+                    {/if}
                     <p class="card-text">
                       <small
                         >Players: {friend.players}/{friend.maxPlayers}</small
@@ -105,7 +112,7 @@
               <div class="col-md-4">
                 <div class="card friend-card">
                   <img
-                    src={friend.worldImageUrl || "default-image.jpg"}
+                    src={friend.worldImageUrl || friend.userImageUrl}
                     class="card-img-top"
                     alt={friend.worldName}
                   />
@@ -134,7 +141,7 @@
               <div class="col-md-4">
                 <div class="card friend-card">
                   <img
-                    src={friend.worldImageUrl || "default-image.jpg"}
+                    src={friend.worldImageUrl || friend.userImageUrl}
                     class="card-img-top"
                     alt={friend.worldName}
                   />
