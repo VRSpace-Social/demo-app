@@ -374,7 +374,8 @@ async fn handle_connection(
                         match serde_json::from_str::<Value>(&text) {
                             
                             Ok(json) => {
-                                // Emette un evento al frontend con il JSON parsato
+                                // Emit an event to the frontend with the parsed JSON
+                                //println!("Received JSON: {:?}", json);
                                 if json["err"] == "authToken doesn't correspond with an active session" {
                                     error!("Authentication error: {}", json["err"]);
                                     app_handle.emit_all("ws_err", json.clone()).unwrap();

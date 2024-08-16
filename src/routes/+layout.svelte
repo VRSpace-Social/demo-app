@@ -7,7 +7,7 @@
   import "../app.css";
 
   import { AppBar, Button, Menu, MenuItem } from 'svelte-ux';
-  import {mdiRefresh, mdiHome, mdiInformation, mdiAccountGroup, mdiWeb, mdiMenu} from '@mdi/js';
+  import {mdiRefresh, mdiHome, mdiInformation, mdiAccountGroup, mdiWeb, mdiMenu, mdiPacMan} from '@mdi/js';
 
 
   let menuOpen = false;
@@ -62,6 +62,8 @@
     
     <!-- Bottone VRChat WebSocket -->
     <Button icon={mdiWeb} href="/websocket" id="vrc-ws" label="VRChat WebSocket" class="p-2 hover:bg-surface-100/10">WebSocket</Button>
+
+    <Button icon={mdiPacMan} href="/test" label="Test" class="p-2 hover:bg-surface-100/10" />
   </div>
 </AppBar>
 
