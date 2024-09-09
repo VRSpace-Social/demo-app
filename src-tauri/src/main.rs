@@ -22,8 +22,23 @@ pub use vrchatapi::apis;
 use vrchatapi::models::{EitherUserOrTwoFactor, TwoFactorAuthCode};
 //use reqwest::cookie::Jar;
 
-
 use reqwest::Client;
+
+fn get_log_dir() -> PathBuf {
+    #[cfg(windows)]
+    {
+        // Prende la cartella LOCALAPPDATA su Windows
+        let app_data = std::env::var("LOCALAPPDATA").expect("No LOCALAPPDATA directory");
+        PathBuf::from(app_data).join("VRSpaceApp").join("logs")
+    }
+
+    #[cfg(unix)]
+    {
+        // Usa /var/tmp come directory su Linux
+        PathBuf::from("/var/tmp").join("VRSpaceApp").join("logs")
+    }
+}
+
 
 fn setup_logger() -> Result<(), fern::InitError> {
     // Configure colors for log levels
@@ -35,12 +50,12 @@ fn setup_logger() -> Result<(), fern::InitError> {
         .trace(Color::Magenta);
 
     // Create log directory if it doesn't exist
-    #[cfg(windows)]
-    let app_data = std::env::var("LOCALAPPDATA").expect("No APP_DATA directory");
+    let log_dir = get_log_dir();
 
-    // Join app_data with the app name and "logs" directory
-    #[cfg(windows)]
-    let log_dir = PathBuf::from(app_data).join("VRSpaceApp").join("logs");
+    // Creare la directory se non esiste
+    if !log_dir.exists() {
+        std::fs::create_dir_all(&log_dir).expect("Failed to create log directory");
+    }
 
     std::fs::create_dir_all(&log_dir)?;
 
