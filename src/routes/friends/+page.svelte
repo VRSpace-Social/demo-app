@@ -1,14 +1,4 @@
 <script lang="ts">
-  interface FriendOnlineData {
-    username: string;
-    worldName?: string;
-    worldId?: string;
-    instanceId?: string;
-    instanceType: string;
-    players?: number;
-    maxPlayers?: number;
-    worldImageUrl: string | null | undefined;
-  }
   import { onMount } from "svelte";
   import { writable } from "svelte/store";
   import "@fortawesome/fontawesome-free/css/all.min.css";
@@ -27,7 +17,8 @@
     maxPlayers?: number
     worldImageUrl?: string | null | undefined,
     userImageUrl: string | undefined,
-    canJoin: boolean
+    canJoin: boolean,
+    userBackgroundPic?: string | null | undefined
   }
 
   interface FriendSearchData {
@@ -40,7 +31,8 @@
     maxPlayers?: number
     worldImageUrl?: string | null | undefined,
     userImageUrl: string | undefined,
-    canJoin?: boolean
+    canJoin?: boolean,
+    userBackgroundPic?: string | null | undefined
   }
 
   const storeData = readStore();
@@ -87,37 +79,26 @@
           <div>Loading friends data, please wait...</div>
         </div>
       {:else}
+        
         <div>
           <h2 class="category-title">Friends in Worlds you can join!</h2>
           <div class="grid grid-cols-3 gap-3">
             {#each $onlineFriends as friend}
-              <div class="col-md-4">
-                <div class="card friend-card">
+            <div class="col-md-4">
+              <Card title={friend.username} subheading="Players: {friend.players}/{friend.maxPlayers} | On Instance: {friend.instanceType}">
+                <div slot="contents" class="bg-danger/10">
                   <img
-                    src={friend.worldImageUrl || "default-image.jpg"}
+                    src={friend.worldImageUrl || friend.userBackgroundPic}
                     class="card-img-top"
                     alt={friend.worldName}
                   />
-                  <div class="card-body">
-                    <h5 class="card-title">{friend.username} is playing</h5>
-                    <a
-                      href={`vrchat://launch?ref=vrchat.com&id=${friend.instanceId}`}
-                      ><i class="fa-solid fa-earth-americas"></i>
-                      {friend.worldName}</a
-                    >
-                    <p class="card-text">
-                      <small
-                        >Players: {friend.players}/{friend.maxPlayers}</small
-                      >
-                      <br />
-                      <small>{friend.instanceType}</small>
-                    </p>
-                  </div>
                 </div>
-                <p>
-                  <small>Players: {friend.players}/{friend.maxPlayers}</small>
-                </p>
+                <div slot="actions">
+                  <Button href={`vrchat://launch?ref=vrchat.com&id=${friend.instanceId}`}>Join Instance</Button>
+                  <Button>See User Profile</Button>
+                </div>
               </Card>
+            </div>
             {/each}
           </div>
         </div>
@@ -126,30 +107,20 @@
           <h2 class="category-title">Friends in Private Worlds</h2>
           <div class="grid grid-cols-3 gap-3">
             {#each $privateFriends as friend}
-              <div class="col-md-4">
-                <div class="card friend-card">
+            <div class="col-md-4">
+              <Card title={friend.username} subheading="On Instance: {friend.instanceType}">
+                <div slot="contents" class="bg-danger/10">
                   <img
-                    src={friend.worldImageUrl || "default-image.jpg"}
+                    src={friend.worldImageUrl || friend.userBackgroundPic}
                     class="card-img-top"
                     alt={friend.worldName}
                   />
-                  <div class="card-body">
-                    <h5 class="card-title">{friend.username} is playing</h5>
-                    <i class="fa-solid fa-earth-americas"></i>
-                    {friend.worldName}
-                    <p class="card-text">
-                      <small
-                        >Players: {friend.players}/{friend.maxPlayers}</small
-                      >
-                      <br />
-                      <small>{friend.instanceType}</small>
-                    </p>
-                  </div>
                 </div>
-                <p>
-                  <small>Players: {friend.players}/{friend.maxPlayers}</small>
-                </p>
+                <div slot="actions">
+                  <Button>See User Profile</Button>
+                </div>
               </Card>
+            </div>
             {/each}
           </div>
         </div>
@@ -158,30 +129,20 @@
           <h2 class="category-title">Friends Active on the Website</h2>
           <div class="grid grid-cols-3 gap-3">
             {#each $websiteFriends as friend}
-              <div class="col-md-4">
-                <div class="card friend-card">
+            <div class="col-md-4">
+              <Card title={friend.username} subheading="On Instance: {friend.instanceType}">
+                <div slot="contents" class="bg-danger/10">
                   <img
-                    src={friend.worldImageUrl || "default-image.jpg"}
+                    src={friend.worldImageUrl || friend.userBackgroundPic}
                     class="card-img-top"
                     alt={friend.worldName}
                   />
-                  <div class="card-body">
-                    <h5 class="card-title">{friend.username} is playing</h5>
-                    <i class="fa-solid fa-earth-americas"></i>
-                    {friend.worldName}
-                    <p class="card-text">
-                      <small
-                        >Players: {friend.players}/{friend.maxPlayers}</small
-                      >
-                      <br />
-                      <small>{friend.instanceType}</small>
-                    </p>
-                  </div>
                 </div>
-                <p >
-                  <small>Players: {friend.players}/{friend.maxPlayers}</small>
-                </p>
+                <div slot="actions">
+                  <Button>See User Profile</Button>
+                </div>
               </Card>
+            </div>
             {/each}
           </div>
         </div>

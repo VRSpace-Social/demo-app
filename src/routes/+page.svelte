@@ -18,7 +18,7 @@
 
   async function vrc_test() {
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    invoke("vrc_test", { username: username, password: password/*, twofactorcode: twofactorcode*/ })
+    invoke("vrc_test", { username: username, password: password, twofactorcode: twofactorcode })
       .then(async () => {
         console.log("Sent start event to Rust VRC client");
       })
@@ -73,7 +73,7 @@
 
   <form class="row" on:submit|preventDefault={vrc_test}>
     <input id="username-input" placeholder="usernsme" bind:value={username} />
-    <input id="password-input" placeholder="password" bind:value={password} />
+    <input id="password-input" type="password" placeholder="password" bind:value={password} />
     <input id="twofactorcode-input" placeholder="twofactorcode" bind:value={twofactorcode} />
     <button type="submit">Test VRC</button>
   </form>

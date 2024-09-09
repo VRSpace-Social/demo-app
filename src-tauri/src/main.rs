@@ -5,6 +5,7 @@
 use log::{error, info, warn, debug};
 use fern::colors::{Color, ColoredLevelConfig};
 use chrono::Local;
+use vrchatapi::apis::configuration::ApiKey;
 use std::path::PathBuf;
 use futures_util::StreamExt;
 use serde_json::Value;
@@ -19,7 +20,7 @@ use url::Url;
 use reqwest::header::USER_AGENT as REQ_USER_AGENT;
 pub use vrchatapi::apis;
 use vrchatapi::models::{EitherUserOrTwoFactor, TwoFactorAuthCode};
-use reqwest::cookie::{Jar, CookieStore};
+//use reqwest::cookie::Jar;
 
 
 use reqwest::Client;
@@ -50,7 +51,7 @@ fn setup_logger() -> Result<(), fern::InitError> {
         .format(move |out, message, record| {
             out.finish(format_args!(
                 "{}[{}][{}] {}",
-                Local::now().format("[%Y-%m-%d][%H:%M:%S]"),
+                Local::now().format("[%Y-%m-%d][%H:%M:%S:%6f]"),
                 record.target(),
                 colors.color(record.level()),
                 message
@@ -108,6 +109,12 @@ async fn vrc_test(username: &str, password: &str, twofactorcode: Option<String>)
     let mut config = apis::configuration::Configuration::default();
     config.basic_auth = Some((String::from(username), Some(String::from(password))));
     config.user_agent = Some(String::from("VRSpace-VRCBot/0.1.0 lyzcoote@vrspace.social"));
+    // Create the ApiKey struct
+    let api_key = ApiKey {
+        prefix: None, // You can set this to Some("prefix_value".to_string()) if you have a prefix
+        key: "JlE5Jldo5Jibnk5O5hTx6XVqsJu4WJ26".to_string(),
+    };
+    config.api_key = Some(api_key);
 
 
     // Use our custom client
@@ -138,8 +145,12 @@ async fn vrc_test(username: &str, password: &str, twofactorcode: Option<String>)
                 }
             }, EitherUserOrTwoFactor::RequiresTwoFactorAuth(_) => {
                 info!("Two-factor authentication required");
+                info!("{:?}", twofactorcode);
                 if let Some(two_factor_code) = twofactorcode {
+                    info!("TwoFactorCode is a String");
                     let two_factor_auth_code = TwoFactorAuthCode { code: two_factor_code };
+
+                    info!("{:?}", two_factor_auth_code);
 
                     let two_factor_response = vrchatapi::apis::authentication_api::verify2_fa(&config, two_factor_auth_code).await;
 
@@ -149,7 +160,8 @@ async fn vrc_test(username: &str, password: &str, twofactorcode: Option<String>)
 
                     match two_factor_response {
                         Ok(verification_result) => {
-
+                        
+                        /*
                         let cookie_jar: Arc<Jar> = config.cookie_jar();
 
                         println!("Cookies: {:?}", cookie_jar);
@@ -166,6 +178,7 @@ async fn vrc_test(username: &str, password: &str, twofactorcode: Option<String>)
                         } else {
                             println!("No cookies found for URL {}", url);
                         }
+                        */
 
 
                             if verification_result.verified {
