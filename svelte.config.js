@@ -16,7 +16,11 @@ const config = {
       '$components/*': 'src/components/*',
       '$utils': 'src/utils/',
       '$utils/*': 'src/utils/*',
-    }
+    },
+    prerender: {
+			crawl: false,
+			entries: []
+		}
   },
 };
 

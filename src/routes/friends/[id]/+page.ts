@@ -1,6 +1,6 @@
 /** @type {import('./$types').PageLoad} */
 export async function load({ params, fetch }) {
-	const userData = await fetch('http://localhost:3000/api/getUserInfo?userID=' + params.slug);
+	const userData = await fetch('http://localhost:3000/api/getUserInfo?userID=' + params.id);
 	if(userData) {
 		const user: any = await userData.json();
 		console.log(user);
@@ -22,3 +22,5 @@ export async function load({ params, fetch }) {
 	};
 	*/
 }
+
+export const prerender = false;

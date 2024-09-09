@@ -63,7 +63,7 @@
     <!-- Bottone VRChat WebSocket -->
     <Button icon={mdiWeb} href="/websocket" id="vrc-ws" label="VRChat WebSocket" class="p-2 hover:bg-surface-100/10">WebSocket</Button>
 
-    <Button icon={mdiPacMan} href="/test" label="Test" class="p-2 hover:bg-surface-100/10" />
+    <Button icon={mdiPacMan} href="/friends/usr_10f065f8-52ed-429c-83e4-16c62ea2f360" label="Test" class="p-2 hover:bg-surface-100/10" />
   </div>
 </AppBar>
 

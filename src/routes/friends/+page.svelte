@@ -18,7 +18,8 @@
     worldImageUrl?: string | null | undefined,
     userImageUrl: string | undefined,
     canJoin: boolean,
-    userBackgroundPic?: string | null | undefined
+    userBackgroundPic?: string | null | undefined,
+    userId: string
   }
 
   interface FriendSearchData {
@@ -32,7 +33,8 @@
     worldImageUrl?: string | null | undefined,
     userImageUrl: string | undefined,
     canJoin?: boolean,
-    userBackgroundPic?: string | null | undefined
+    userBackgroundPic?: string | null | undefined,
+    userId: string
   }
 
   const storeData = readStore();
@@ -95,7 +97,7 @@
                 </div>
                 <div slot="actions">
                   <Button href={`vrchat://launch?ref=vrchat.com&id=${friend.instanceId}`}>Join Instance</Button>
-                  <Button>See User Profile</Button>
+                  <Button href={`/friends/${friend.userId}`}>See User Profile</Button>
                 </div>
               </Card>
             </div>
@@ -117,7 +119,7 @@
                   />
                 </div>
                 <div slot="actions">
-                  <Button>See User Profile</Button>
+                  <Button href={`/friends/${friend.userId}`}>See User Profile</Button>
                 </div>
               </Card>
             </div>
@@ -139,7 +141,7 @@
                   />
                 </div>
                 <div slot="actions">
-                  <Button>See User Profile</Button>
+                  <Button href={`/friends/${friend.userId}`}>See User Profile</Button>
                 </div>
               </Card>
             </div>
